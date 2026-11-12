@@ -27,7 +27,26 @@ code { font-size: 0.85em; }
 .tag { padding: 0.15rem 0.45rem; border-radius: 4px; font-size: 0.8rem; background: #2a3545; }
 .tag.done { background: #1e4d3a; color: #9fe0c0; }
 .tag.draft { background: #3a4556; }
+.tag.previewed { background: #4d3d1e; color: #e0cf9f; }
 .tag.failed { background: #5a2a2a; color: #ffb3b3; }
+.preview-card { border: 1px solid #3a4556; }
+.preview-card .eyebrow {
+  margin: 0 0 0.25rem; font-size: 0.78rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted);
+}
+.preview-card h2 { margin: 0 0 0.75rem; }
+.actions { display: flex; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem; }
+.actions form { margin: 0; }
+.btn-preview { background: #6c5ce7; border-color: #6c5ce7; }
+.btn-accept:disabled,
+button:disabled {
+  background: #2a3545; border-color: #2a3545; color: var(--muted);
+  cursor: not-allowed; opacity: 0.7;
+}
+.plain-hint {
+  background: #0f1419; border-left: 3px solid var(--accent);
+  padding: 0.6rem 0.8rem; border-radius: 4px; line-height: 1.7;
+}
 .flash { list-style: none; padding: 0 1.25rem; }
 .flash .ok { color: var(--ok); }
 .flash .error { color: var(--err); }

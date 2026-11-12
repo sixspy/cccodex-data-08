@@ -5,16 +5,52 @@
 <section class="card">
   <h1>{{ job.name }}</h1>
   <p>种子 <code>{{ job.seed_path }}</code> · 状态 <span class="tag {{ job.status }}">{{ job.status }}</span></p>
-  {% if job.status == 'draft' %}
-  <form method="post" action="{{ url_for('jobs.run_job_view', job_id=job.id) }}">
-    <button type="submit">运行采集（同步）</button>
-  </form>
-  {% elif job.status == 'done' %}
-  <p class="muted">已完成于 {{ job.finished_at or '—' }}</p>
+  {% if job.status == 'done' %}
+  <p class="muted">已收下入账于 {{ job.finished_at or '—' }}</p>
   {% endif %}
 </section>
+
+<section class="card preview-card">
+  <p class="eyebrow">试看</p>
+  <h2>尚未入账{% if job.status == 'done' %} <span class="tag done">已入账·试看留档</span>{% endif %}</h2>
+  {% if job.status == 'done' %}
+  <p class="muted">本任务已经收下，下面是当时试看的留档，已全部进入账本，不能再用第二次试看冒充新账。</p>
+  {% else %}
+  <div class="actions">
+    <form method="post" action="{{ url_for('jobs.preview_job_view', job_id=job.id) }}">
+      <button type="submit" class="btn-preview">试看</button>
+    </form>
+    <form method="post" action="{{ url_for('jobs.accept_job_view', job_id=job.id) }}">
+      <button type="submit" class="btn-accept"
+        {% if job.status != 'previewed' or previews|length == 0 %}disabled{% endif %}>收下</button>
+    </form>
+  </div>
+  <p class="plain-hint">
+    <strong>试看</strong>：只把目录里即将收下的<strong>编码和题名</strong>列在下面给你过目，<strong>账本仍保持空白</strong>，不写一条账。<br />
+    <strong>收下</strong>：只把这次试看里出现过的编码写进下方账本；试看没看到、目录里后来多出来的编码一律混不进来。<br />
+    没点过试看、试看还没结束，或这次是空看时，「收下」是灰的，后台也会挡下。
+  </p>
+  {% endif %}
+
+  <table>
+    <thead><tr><th>编码（item_key）</th><th>题名</th></tr></thead>
+    <tbody>
+      {% for p in previews %}
+      <tr>
+        <td><code>{{ p.item_key }}</code></td>
+        <td>{{ p.title }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="2" class="muted">
+        {% if job.status == 'previewed' %}这次是空看{% else %}还没试看，点「试看」先看一眼{% endif %}
+      </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
 <section class="card">
-  <h2>落库记录</h2>
+  <h2>账本（落库记录）</h2>
   <table>
     <thead><tr><th>item_key</th><th>标题</th><th>时间</th></tr></thead>
     <tbody>
@@ -25,7 +61,7 @@
         <td>{{ r.fetched_at }}</td>
       </tr>
       {% else %}
-      <tr><td colspan="3" class="muted">尚无记录</td></tr>
+      <tr><td colspan="3" class="muted">账本空白：尚未收下任何记录</td></tr>
       {% endfor %}
     </tbody>
   </table>

@@ -12,13 +12,14 @@ CATALOGS = {
         {"sku": "B-101", "title": "泵站运行日报"},
         {"sku": "B-102", "title": "雨污分流抽检单"},
     ],
+    "/mock/catalog/gamma": [],
 }
 
 
 def render_catalog_page(path: str) -> str:
-    items = CATALOGS.get(path)
-    if not items:
+    if path not in CATALOGS:
         return _not_found(path)
+    items = CATALOGS[path]
     rows = "".join(
         f"<li data-sku='{escape(it['sku'])}'>{escape(it['title'])}</li>"
         for it in items

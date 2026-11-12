@@ -3,7 +3,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from app.db import get_db
 from app.routes.auth import login_required
 from app.services.mock_catalog import CATALOGS
-from app.services.runner import run_job
+from app.services.runner import accept_job, preview_job
 
 bp = Blueprint("jobs", __name__)
 
@@ -50,19 +50,37 @@ def create_job():
     return redirect(url_for("jobs.list_jobs"))
 
 
-@bp.post("/jobs/<int:job_id>/run")
+@bp.post("/jobs/<int:job_id>/preview")
 @login_required
-def run_job_view(job_id: int):
+def preview_job_view(job_id: int):
     try:
-        summary = run_job(job_id)
+        summary = preview_job(job_id)
+        if summary.get("status") == "failed":
+            flash("试看失败：种子目录不可用", "error")
+        elif summary["previewed"] == 0:
+            flash("试看结束：这次是空看，没有可收下的编码", "ok")
+        else:
+            flash(f"试看结束：列出 {summary['previewed']} 条，尚未入账", "ok")
+    except ValueError as e:
+        flash(str(e), "error")
+    except Exception as e:
+        flash(f"试看失败: {e}", "error")
+    return redirect(url_for("jobs.detail", job_id=job_id))
+
+
+@bp.post("/jobs/<int:job_id>/accept")
+@login_required
+def accept_job_view(job_id: int):
+    try:
+        summary = accept_job(job_id)
         flash(
-            f"运行完成：写入 {summary['inserted']} 条，去重跳过 {summary['skipped_dup']} 条",
+            f"收下完成：入账 {summary['inserted']} 条，去重跳过 {summary['skipped_dup']} 条",
             "ok",
         )
     except ValueError as e:
         flash(str(e), "error")
     except Exception as e:
-        flash(f"运行失败: {e}", "error")
+        flash(f"收下失败: {e}", "error")
     return redirect(url_for("jobs.detail", job_id=job_id))
 
 
@@ -78,4 +96,10 @@ def detail(job_id: int):
         "SELECT * FROM crawl_records WHERE job_id = ? ORDER BY id",
         (job_id,),
     ).fetchall()
-    return render_template("job_detail.html", job=job, records=records)
+    previews = db.execute(
+        "SELECT * FROM preview_records WHERE job_id = ? ORDER BY id",
+        (job_id,),
+    ).fetchall()
+    return render_template(
+        "job_detail.html", job=job, records=records, previews=previews
+    )

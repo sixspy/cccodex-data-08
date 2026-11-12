@@ -54,6 +54,14 @@ def init_db(app):
                 fetched_at TEXT NOT NULL DEFAULT (datetime('now')),
                 UNIQUE(job_id, item_key)
             );
+            CREATE TABLE IF NOT EXISTS preview_records (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                job_id INTEGER NOT NULL REFERENCES crawl_jobs(id) ON DELETE CASCADE,
+                item_key TEXT NOT NULL,
+                title TEXT NOT NULL,
+                payload_json TEXT NOT NULL,
+                previewed_at TEXT NOT NULL DEFAULT (datetime('now'))
+            );
             """
         )
         db.commit()
